@@ -1,0 +1,84 @@
+name:                ExampleWebApp
+version:             0.1.0.0
+github:              "Github username here/ExampleWebApp"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "Author email here"
+copyright:           "2019 Author name here"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            App category here
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/Github username here/ExampleWebApp#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - containers
+  - time
+  - aeson
+  - bytestring
+  - text
+  - pcre-heavy
+  - mtl
+  - stm
+  - async
+  - data-has
+  - string-random
+  - katip
+  - postgresql-simple
+  - postgresql-simple-migration
+  - resource-pool
+  - safe-exceptions
+  - hedis >= 0.10.0
+  - amqp
+  - scotty
+  - http-types
+  - cookie
+  - wai
+  - wai-extra
+  - blaze-builder
+  - digestive-functors
+  - digestive-functors-aeson >= 1.1.27
+
+default-extensions:
+  - OverloadedStrings
+  - LambdaCase
+  - FlexibleContexts
+  - ConstraintKinds
+  - FlexibleInstances
+  - MultiParamTypeClasses
+  - GeneralizedNewtypeDeriving
+  - TemplateHaskell
+
+library:
+  source-dirs: src
+
+executables:
+  ExampleWebApp-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - ExampleWebApp
+
+tests:
+  ExampleWebApp-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - ExampleWebApp
