@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dc78ba2f20cbb24a828ab92df80c642347d5423d9b19f575e4e0cd495cdc9c50
+-- hash: 60841d99b5d16fb817a9a0cf22a22d6cd616b0941a74784b4021ad0db0f98773
 
 name:           ExampleWebApp
 version:        0.1.0.0
@@ -53,8 +53,7 @@ library
     , containers
     , cookie
     , data-has
-    , digestive-functors
-    , digestive-functors-aeson >=1.1.27
+    , forma
     , hedis >=0.10.0
     , http-types
     , katip
@@ -92,8 +91,7 @@ executable ExampleWebApp-exe
     , containers
     , cookie
     , data-has
-    , digestive-functors
-    , digestive-functors-aeson >=1.1.27
+    , forma
     , hedis >=0.10.0
     , http-types
     , katip
@@ -132,8 +130,7 @@ test-suite ExampleWebApp-test
     , containers
     , cookie
     , data-has
-    , digestive-functors
-    , digestive-functors-aeson >=1.1.27
+    , forma
     , hedis >=0.10.0
     , http-types
     , katip
