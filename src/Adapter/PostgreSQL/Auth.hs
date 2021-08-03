@@ -46,7 +46,7 @@ defaultConfig = Config { configConnectionInfo = defaultConnectInfo { connectData
 addAuth :: PG r m => D.Auth -> m (Either D.RegistrationError (D.UserID, D.VerificationCode))
 addAuth auth = do
     let (email, password) = D.fromAuth auth
-    vCode <- liftIO $ (D.fromEmail email<>) <$> stringRandomIO "_\\w{20}"
+    vCode <- liftIO $ (D.fromEmail email <>) <$> stringRandomIO "_\\w{20}"
     insertNewUser (D.fromEmail email, D.fromPassword password, vCode) >>= \case
         Right [Only uID] -> return $ Right (uID, vCode)
         Right _ -> throwString "Should Not Happen: The Query Doesn't Return A User Id!"

@@ -56,10 +56,11 @@ application = do
 
 
 main :: IO ()
-main = withState $ \le state@(_, _, _, mqState) -> do
+main = withState $ \le state -> do
     let runner = run le state
-    MQAuth.initMQ mqState runner
-    runner application
+    runner $ do 
+        MQAuth.initMQ runner
+        application
 
 
 -- Takes A Log Environment, An Initial State, And An App To Run And Returns The Result

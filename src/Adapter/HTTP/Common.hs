@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedLabels #-}
 
 module Adapter.HTTP.Common where
 
@@ -18,10 +17,11 @@ import qualified Data.Aeson as Aeson
 import qualified Web.Forma as Forma
 import qualified Data.Text.Lazy as LT
 
+
 -- Parse JSON From A Request Body And Return The Result Or Return A Status 400 Error If Parsing Fails
 parseAndValidateJSON :: (ScottyError e, MonadIO m, Show a, Show e) => Forma.FormParser names e m a -> ActionT e m a
 parseAndValidateJSON form = do
-    jsonBody <- jsonData
+    jsonBody <- jsonData `rescue` (\_ -> return Aeson.Null)
     p <- lift $ Forma.runForm form jsonBody
     case p of
         Forma.Succeeded a -> return a
@@ -40,7 +40,7 @@ validator constructor object = do
 
 
 -- Set A Cookie With A Given Name, Value, And Expiration Time In Seconds
-setCookie :: (ScottyError e, Monad m) => B.ByteString -> B.ByteString -> DiffTime -> ActionT e m ()
+setCookie :: (Monad m) => B.ByteString -> B.ByteString -> DiffTime -> ActionT e m ()
 setCookie name value ttl = addHeader "Set-Cookie" cookie
     where cookie = decodeUtf8 . toLazyByteString . Cookie.renderSetCookie $ opts
           opts = Cookie.defaultSetCookie { Cookie.setCookieName = name
@@ -61,7 +61,7 @@ getCookie key = do
 
 
 -- Set The Current Session ID As A Cookie With A Lifespan Of 15 Minutes
-setSessionIdInCookie :: (MonadIO m, ScottyError e) => SessionID -> ActionT e m ()
+setSessionIdInCookie :: (MonadIO m) => SessionID -> ActionT e m ()
 setSessionIdInCookie sessionID = setCookie "SessionID" (TE.encodeUtf8 sessionID) (60 * 15)
 
 
@@ -69,7 +69,7 @@ getCurrentUserId :: (SessionRepo m, ScottyError e) => ActionT e m (Maybe UserID)
 getCurrentUserId = do
     getCookie "SessionID" >>= \case
         Nothing -> return Nothing
-        Just sessionID -> lift . findUserBySessionID . LT.toStrict $ sessionID 
+        Just sessionID -> lift . findUserBySessionID . LT.toStrict $ sessionID
 
 
 reqCurrentUserId :: (SessionRepo m, ScottyError e) => ActionT e m UserID
@@ -79,7 +79,7 @@ reqCurrentUserId = do
             status status401
             json ("AuthRequired" :: LT.Text)
             finish
-        Just userID -> 
+        Just userID ->
             return userID
 
 

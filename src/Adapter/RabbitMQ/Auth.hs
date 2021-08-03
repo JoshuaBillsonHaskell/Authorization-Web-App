@@ -46,7 +46,7 @@ consumeEmailVerification runner (msg, _) =
 
 
 -- Initialize RabbitMQ Topology
-initMQ :: (M.InMemory r m, KatipContext m, MonadCatch m) => State -> (m Bool -> IO Bool) -> IO ()
-initMQ state runner = do
-    void $ initQueue state "verifyEmail" "auth" "registration"
-    initConsumer state "verifyEmail" (consumeEmailVerification runner)
+initMQ :: (M.InMemory r m, Rabbit r m, KatipContext m, MonadCatch m) => (m Bool -> IO Bool) -> m ()
+initMQ runner = do
+    void $ initQueue "verifyEmail" "auth" "registration"
+    initConsumer "verifyEmail" (consumeEmailVerification runner)

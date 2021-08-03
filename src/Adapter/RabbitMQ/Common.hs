@@ -41,21 +41,24 @@ initExchange (State producerChannel' _) name = AMQP.declareExchange producerChan
 
 -- Initialize A RabbitMQ Queue With A Given Name And Routing Key And Bind It To A Given Exchange
 -- Give Queue A Random Name By Passing An Empty String. Returns The Name Of The New Queue.
-initQueue :: State -> T.Text -> T.Text -> T.Text -> IO T.Text
-initQueue state@(State producerChannel' _) queueName exchangeName routingKey = do
-    initExchange state exchangeName
-    (qName, _, _) <- AMQP.declareQueue producerChannel' $ AMQP.newQueue { AMQP.queueName = queueName }
-    AMQP.bindQueue producerChannel' qName exchangeName routingKey
-    return qName
+initQueue :: (Rabbit r m) => T.Text -> T.Text -> T.Text -> m T.Text
+initQueue queueName exchangeName routingKey = do
+    state@(State producerChannel' _) <- asks getter
+    liftIO $ do 
+        initExchange state exchangeName
+        (qName, _, _) <- AMQP.declareQueue producerChannel' $ AMQP.newQueue { AMQP.queueName = queueName }
+        AMQP.bindQueue producerChannel' qName exchangeName routingKey
+        return qName
 
 
 -- Initialize A Message Consumer On The Given Queue
-initConsumer :: State -> T.Text -> ((AMQP.Message, AMQP.Envelope) -> IO Bool) -> IO ()
-initConsumer (State _ consumerChannel') queueName callback = do
-    void $ AMQP.consumeMsgs consumerChannel' queueName AMQP.Ack $ \payload@(_, env) -> do
-      callback payload >>= \case
-          True -> AMQP.ackEnv env
-          False -> AMQP.rejectEnv env False
+initConsumer :: (Rabbit r m) => T.Text -> ((AMQP.Message, AMQP.Envelope) -> IO Bool) -> m ()
+initConsumer queueName callback = do
+    (State _ consumerChannel') <- asks getter
+    liftIO . void $ AMQP.consumeMsgs consumerChannel' queueName AMQP.Ack $ \payload@(_, env) -> do
+        callback payload >>= \case
+            True -> AMQP.ackEnv env
+            False -> AMQP.rejectEnv env False
 
 
 -- Publish A JSON Object To A Given Exchange With A Given Routing Key
