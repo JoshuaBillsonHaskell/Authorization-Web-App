@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 60841d99b5d16fb817a9a0cf22a22d6cd616b0941a74784b4021ad0db0f98773
+-- hash: 601b69807fa505245654c7857ae451ab48320b5db113f3083ff01f16f5ce6b60
 
 name:           ExampleWebApp
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Adapter.HTTP.API.Auth
       Adapter.HTTP.Common
       Adapter.HTTP.Main
+      Adapter.HTTP.Validation
       Adapter.InMemory.Auth
       Adapter.PostgreSQL.Auth
       Adapter.RabbitMQ.Auth

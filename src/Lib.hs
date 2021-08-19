@@ -28,9 +28,11 @@ instance AuthRepo App where
   findUserByAuth = PG.findUserByAuth
   findEmailFromUserID = PG.findEmailFromUserID
 
+
 instance SessionRepo App where
     newSession = R.newSession
     findUserBySessionID = R.findUserBySessionID
+    
 
 instance EmailVerificationNotifier App where
     notifyVerification = MQAuth.notifyVerification
@@ -54,21 +56,12 @@ application = do
                   Nothing -> pollNotifications email
               
 
-
-main :: IO ()
-main = withState $ \le state -> do
-    let runner = run le state
-    runner $ do 
-        MQAuth.initMQ runner
-        application
-
-
 -- Takes A Log Environment, An Initial State, And An App To Run And Returns The Result
 run :: LogEnv -> State -> App a -> IO a
 run le state app = runKatipContextT le () mempty $ runReaderT (unApp app) state
 
 
--- Like Run But Creates And Destroys A Katip Log Environment
+-- Provides A Katip LogEnv To A Function That Needs It
 runWithKatip :: (LogEnv -> IO a) -> IO a
 runWithKatip =
     bracket createLogEnv closeScribes
@@ -77,6 +70,7 @@ runWithKatip =
                             registerScribe "stdout" stdoutScribe defaultScribeSettings logEnv
 
 
+-- Provides An Initial State and Katip LogEnv To A Function That Needs It
 withState :: (LogEnv -> State -> IO ()) -> IO ()
 withState action = do
     mState <- newTVarIO M.initialState
@@ -85,3 +79,12 @@ withState action = do
             PG.withState PG.defaultConfig $ \pool ->
                 MQ.withState "Hauth" 16 $ \mqState ->
                     action le (mState, reddisConn, pool, mqState)
+
+
+-- The Main Function
+main :: IO ()
+main = withState $ \le state -> do
+    let runner = run le state
+    runner $ do
+        MQAuth.initMQ runner
+        application
