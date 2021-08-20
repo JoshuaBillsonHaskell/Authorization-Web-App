@@ -24,14 +24,14 @@ instance ToJSON EmailVerificationPayload where
     toEncoding (EmailVerificationPayload email vCode) = pairs $ "email" .= email <> "verificationCode" .= vCode
 
 
--- Publish JSON Payload Containing Email Verification Details To RabbitMQ
+-- |Publish JSON Payload Containing Email Verification Details To RabbitMQ
 notifyVerification :: Rabbit r m => D.Email -> D.VerificationCode -> m ()
 notifyVerification email vCode = do
     let payload = EmailVerificationPayload (D.fromEmail email) vCode
     publish "auth" "registration" payload
 
 
--- RabbitMQ Handler For Sending Email Verification
+-- |RabbitMQ Handler For Sending Email Verification
 consumeEmailVerification :: (M.InMemory r m, KatipContext m, MonadCatch m) => (m Bool -> IO Bool) -> (AMQP.Message, AMQP.Envelope) -> IO Bool
 consumeEmailVerification runner (msg, _) = 
     runner $ consumeAndProcess msg handler
@@ -45,7 +45,7 @@ consumeEmailVerification runner (msg, _) =
                       return True
 
 
--- Initialize RabbitMQ Topology
+-- |Initialize RabbitMQ Topology
 initMQ :: (M.InMemory r m, Rabbit r m, KatipContext m, MonadCatch m) => (m Bool -> IO Bool) -> m ()
 initMQ runner = do
     void $ initQueue "verifyEmail" "auth" "registration"

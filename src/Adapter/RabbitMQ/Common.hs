@@ -13,7 +13,7 @@ data State = State { producerChannel :: AMQP.Channel, consumerChannel :: AMQP.Ch
 
 type Rabbit r m = (Has State r, MonadReader r m, MonadIO m)
 
--- Runs An Action Which Requires An Open Producer And Consumer Channel To The RabbitMQ Server
+-- |Runs An Action Which Requires An Open Producer And Consumer Channel To The RabbitMQ Server
 withState :: T.Text -> W.Word16 -> (State -> IO a) -> IO a
 withState connName prefetchCount action =
     bracket initConn closeConn action'
@@ -33,13 +33,13 @@ withState connName prefetchCount action =
           action' ((_, producerChannel'), (_, consumerChannel')) = action $ State producerChannel' consumerChannel'
 
 
--- Initialize A RabbitMQ Exchange With A Given Name
+-- |Initialize A RabbitMQ Exchange With A Given Name
 initExchange :: State -> T.Text -> IO ()
 initExchange (State producerChannel' _) name = AMQP.declareExchange producerChannel' opts
     where opts = AMQP.newExchange { AMQP.exchangeName = name, AMQP.exchangeType = "topic" }
 
 
--- Initialize A RabbitMQ Queue With A Given Name And Routing Key And Bind It To A Given Exchange
+-- |Initialize A RabbitMQ Queue With A Given Name And Routing Key And Bind It To A Given Exchange
 -- Give Queue A Random Name By Passing An Empty String. Returns The Name Of The New Queue.
 initQueue :: (Rabbit r m) => T.Text -> T.Text -> T.Text -> m T.Text
 initQueue queueName exchangeName routingKey = do
@@ -51,7 +51,7 @@ initQueue queueName exchangeName routingKey = do
         return qName
 
 
--- Initialize A Message Consumer On The Given Queue
+-- |Initialize A Message Consumer On The Given Queue
 initConsumer :: (Rabbit r m) => T.Text -> ((AMQP.Message, AMQP.Envelope) -> IO Bool) -> m ()
 initConsumer queueName callback = do
     (State _ consumerChannel') <- asks getter
@@ -61,7 +61,7 @@ initConsumer queueName callback = do
             False -> AMQP.rejectEnv env False
 
 
--- Publish A JSON Object To A Given Exchange With A Given Routing Key
+-- |Publish A JSON Object To A Given Exchange With A Given Routing Key
 publish :: (ToJSON a, Rabbit r m) => T.Text -> T.Text -> a -> m ()
 publish exchange routingKey payload = do
     (State producerChannel' _) <- asks getter
@@ -69,7 +69,7 @@ publish exchange routingKey payload = do
     liftIO . void $ AMQP.publishMsg producerChannel' exchange routingKey msg
 
 
--- Given A RabbitMQ Message Containing A JSON String, Decode The String And Run A Handler Function.
+-- |Given A RabbitMQ Message Containing A JSON String, Decode The String And Run A Handler Function.
 -- Log Any Errors And Return A Boolean Indicating Whether Or Not The Handler Ran Successfully.
 consumeAndProcess :: (KatipContext m, MonadCatch m, FromJSON a) => AMQP.Message -> (a -> m Bool) -> m Bool
 consumeAndProcess msg handler = do

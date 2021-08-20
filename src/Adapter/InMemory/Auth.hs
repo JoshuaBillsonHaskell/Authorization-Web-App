@@ -21,6 +21,7 @@ import Text.StringRandom (stringRandomIO)
 
 type InMemory r m = (Has (STM.TVar State) r, MonadReader r m, MonadIO m)
 
+-- |This Data Structure Stores The Current State Of The Application
 data State = State { stateUsers :: [(D.Auth, D.UserID)]
                    , stateUnverifiedEmails :: M.Map D.VerificationCode D.Email
                    , stateVerifiedEmails :: S.Set D.Email
@@ -29,6 +30,7 @@ data State = State { stateUsers :: [(D.Auth, D.UserID)]
                    , stateSessions :: M.Map D.SessionID D.UserID
                    } deriving (Show)
 
+-- |The Initial State Of Our In Memory Representation Of The Application
 initialState :: State
 initialState = State { stateUsers = []
                      , stateUnverifiedEmails = mempty
@@ -39,6 +41,7 @@ initialState = State { stateUsers = []
                      }
 
 
+-- |Given An Auth, Add A New User To The System
 addAuth :: InMemory r m => D.Auth -> m (Either D.RegistrationError (D.UserID, D.VerificationCode))
 addAuth auth = do
     tVar <- asks getter
@@ -52,6 +55,7 @@ addAuth auth = do
             liftIO $ return (Left D.AuthNotUniqueError)
 
 
+-- |Verify The User Matching The Given Verification Code
 setEmailVerified :: InMemory r m => D.VerificationCode -> m (Either D.RegistrationError (D.UserID, D.Email))
 setEmailVerified verificationCode = do
     tVar <- asks getter
@@ -62,6 +66,7 @@ setEmailVerified verificationCode = do
             liftIO $ (STM.atomically . STM.writeTVar tVar $ newState) >> return (Right (userID, email))
 
 
+-- |Given An Auth, Return The User ID And Their Verification Status If It Exists
 findUserByAuth :: InMemory r m => D.Auth -> m (Maybe (D.UserID, Bool))
 findUserByAuth auth = do
     tVar <- asks getter
@@ -72,12 +77,14 @@ findUserByAuth auth = do
             liftIO $ return (Just (userID, isVerified))
 
 
+-- |Find The Email Matching The Given User ID If It Exists
 findEmailFromUserID :: InMemory r m => D.UserID -> m (Maybe D.Email)
 findEmailFromUserID userID = do
     tVar <- asks getter
     liftIO $ searchForEmail userID <$> STM.readTVarIO tVar
 
 
+-- |Create New Session For The Given User ID
 newSession :: InMemory r m => D.UserID -> m D.SessionID
 newSession userID = do
     tvar <- asks getter
@@ -89,12 +96,14 @@ newSession userID = do
             liftIO . return $ sessionID
 
 
+-- |Given A Session ID, Return The Associated User ID If It Exists
 findUserBySessionID :: InMemory r m => D.SessionID -> m (Maybe D.UserID)
 findUserBySessionID sessionID = do
     tVar <- asks getter
     liftIO $ M.lookup sessionID . stateSessions <$> STM.readTVarIO tVar
 
 
+-- |Send A Verification Code To The Provided Email
 notifyVerification :: InMemory r m => D.Email -> D.VerificationCode -> m ()
 notifyVerification email verificationCode = do
     tVar <- asks getter
@@ -161,6 +170,7 @@ sendNotification email verificationCode state@(State _ unverifiedEmails _ _ noti
           , stateNotifications = M.insert email verificationCode notifications }
 
 
+-- Helper Function
 safeHead :: [a] -> Maybe a
 safeHead [] = Nothing
 safeHead (x:_) = Just x

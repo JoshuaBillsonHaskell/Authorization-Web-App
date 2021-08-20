@@ -20,14 +20,14 @@ type State = R.Connection
 type Redis r m = (Has State r, MonadReader r m, MonadIO m, MonadThrow m)
 
 
--- Given A Function Which Requires A Redis Connection, Initializes The Connection And Passes It In.
+-- |Given A Function Which Requires A Redis Connection, Initializes The Connection And Passes It In.
 withState :: (R.Connection -> IO a) -> IO a
 withState = R.withCheckedConnect connectInfo
     where connectInfo = R.defaultConnectInfo
 
 
--- Create New Session For The Given User ID
-newSession :: Redis r m => D.UserID -> m D.SessionID
+-- |Create New Session For The Given User ID
+newSession :: (Redis r m) => D.UserID -> m D.SessionID
 newSession userID = do
     sessionID <- liftIO $ stringRandomIO "\\w{20}"
     result <- withConn $ R.set (encodeUtf8 sessionID) (fromString . show $ userID)
@@ -36,7 +36,7 @@ newSession userID = do
         err -> throwString $ "Reddis Error: " <> show err
 
 
--- Given A Session ID, Return The Associated User ID If It Exists
+-- |Given A Session ID, Return The Associated User ID If It Exists
 findUserBySessionID :: Redis r m => D.SessionID -> m (Maybe D.UserID)
 findUserBySessionID sessionID = do
     result <- withConn $ R.get (encodeUtf8 sessionID)
@@ -50,7 +50,7 @@ findUserBySessionID sessionID = do
 -----------------------------------------------------
 
 
--- Given A Redis Contect To Run, Pass In A Connection From The Reader Environment And Return The Result
+-- |Given A Redis Contect To Run, Pass In A Connection From The Reader Environment And Return The Result
 withConn :: Redis r m => R.Redis a -> m a
 withConn action = do
     conn <- asks getter

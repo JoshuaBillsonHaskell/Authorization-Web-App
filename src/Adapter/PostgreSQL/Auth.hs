@@ -22,10 +22,13 @@ import Data.Maybe (listToMaybe)
 import qualified Data.ByteString as B
 import qualified Domain.Auth as D
 
+-- |Type Constraints For Our Postgres Environment.
 type PG r m = (Has State r, MonadReader r m, MonadIO m, MonadThrow m)
 
+-- |A Pool Of Connections To The Postgres Server
 type State = Pool Connection
 
+-- |Configurations For The Postgres Server Connection Pool
 data Config = Config { configConnectionInfo :: ConnectInfo
                      , configStripeCount :: Int
                      , configMaxOpenConnPerStrip :: Int
@@ -33,7 +36,7 @@ data Config = Config { configConnectionInfo :: ConnectInfo
                      }
 
 
--- Default Database Configuration
+-- |Default Database Configuration
 defaultConfig :: Config
 defaultConfig = Config { configConnectionInfo = defaultConnectInfo { connectDatabase = "hauth" }
                        , configStripeCount = 2
@@ -42,7 +45,7 @@ defaultConfig = Config { configConnectionInfo = defaultConnectInfo { connectData
                        }
 
 
--- Add New User To Database
+-- |Add New User To Database
 addAuth :: PG r m => D.Auth -> m (Either D.RegistrationError (D.UserID, D.VerificationCode))
 addAuth auth = do
     let (email, password) = D.fromAuth auth
@@ -53,7 +56,7 @@ addAuth auth = do
         Left err -> catchInsertUserError err
 
 
--- Verify A User Associated With A Given Verification Code. Return The Corresponding User ID And Email In The Event
+-- |Verify A User Associated With A Given Verification Code. Return The Corresponding User ID And Email In The Event
 -- Of A Success Or Return A RegistrationError In The Event Of Failure.
 setEmailVerified :: PG r m => D.VerificationCode -> m (Either D.RegistrationError (D.UserID, D.Email))
 setEmailVerified vCode = do
@@ -65,7 +68,7 @@ setEmailVerified vCode = do
         _ -> return $ Left D.EmailVerificationError
 
 
--- Given An Authentication Object, Retrieves The Corresponding User ID And Their Verification Status If
+-- |Given An Authentication Object, Retrieves The Corresponding User ID And Their Verification Status If
 -- Available. Returns Nothing If No Matching User Can Be Located.
 findUserByAuth :: PG r m => D.Auth -> m (Maybe (D.UserID, Bool))
 findUserByAuth auth = listToMaybe <$> result
@@ -76,7 +79,7 @@ findUserByAuth auth = listToMaybe <$> result
             query conn statement (email, password)
 
 
--- Retrieves A User's Email Associated With The Given User ID If It Exists. Returns Nothing If No Such User Exists.
+-- |Retrieves A User's Email Associated With The Given User ID If It Exists. Returns Nothing If No Such User Exists.
 findEmailFromUserID :: PG r m => D.UserID -> m (Maybe D.Email)
 findEmailFromUserID userID = do
     findEmail userID >>= \case
@@ -87,12 +90,12 @@ findEmailFromUserID userID = do
         _ -> return Nothing
 
 
--- Creates A Configured Connection Pool And Runs A Given Action. Destroys All Resources In The Pool Upon Completion.
+-- |Creates A Configured Connection Pool And Runs A Given Action. Destroys All Resources In The Pool Upon Completion.
 withPool :: Config -> (State -> IO a) -> IO a
 withPool config = bracket (initPool config) destroyAllResources
 
 
--- Like withPool But Migrates The Database Before Performing The Given Action.
+-- |Like withPool But Migrates The Database Before Performing The Given Action.
 withState :: Config -> (State -> IO a) -> IO a
 withState config action =
     withPool config $ \state -> do
@@ -105,7 +108,7 @@ withState config action =
 ------------------------------------------------------
 
 
--- Helper Function Which Inserts A New User Into The Database
+-- |Helper Function Which Inserts A New User Into The Database
 insertNewUser :: PG r m => (Text, Text, Text) -> m (Either SqlError [Only D.UserID])
 insertNewUser (email, password, vCode) = withConn $ \conn ->
     try $ query conn statement (email, password, vCode, False)
@@ -114,7 +117,7 @@ insertNewUser (email, password, vCode) = withConn $ \conn ->
                       \ (?, crypt(?, gen_salt('bf')), ?, ?) returning id; "
 
 
--- Helper Function For Handling Errors Thrown When Inserting A New User Into The Database
+-- |Helper Function For Handling Errors Thrown When Inserting A New User Into The Database
 catchInsertUserError :: PG r m => SqlError -> m (Either D.RegistrationError (D.UserID, D.VerificationCode))
 catchInsertUserError err@SqlError{sqlState = state, sqlErrorMsg = msg} = do
     if state == "23505" && B.isInfixOf "auths_email_key" msg
@@ -122,7 +125,7 @@ catchInsertUserError err@SqlError{sqlState = state, sqlErrorMsg = msg} = do
         else throwString $ "Unhandled PostgreSQL Exception: " <> show err
 
 
--- Helper Function Which Takes A Verification Code And Verifies The Corresponding User In The Database
+-- |Helper Function Which Takes A Verification Code And Verifies The Corresponding User In The Database
 verifyEmail :: PG r m => D.VerificationCode -> m [(Int, Text)]
 verifyEmail vCode = withConn $ \conn -> do
     query conn statement $ Only vCode
@@ -132,26 +135,26 @@ verifyEmail vCode = withConn $ \conn -> do
                       \ RETURNING id, cast (email as text); "
 
 
--- Helper Function That Retrieves A User's Email Associated With A Given ID.
+-- |Helper Function That Retrieves A User's Email Associated With A Given ID.
 findEmail :: PG r m => D.UserID -> m [Only Text]
 findEmail userID = withConn $ \conn -> do
     let statement = "SELECT cast (email as TEXT) FROM auths WHERE id = ?;"
     query conn statement (Only userID)
 
 
--- Helper Function For Initilizing A Pool Of Connections
+-- |Helper Function For Initilizing A Pool Of Connections
 initPool :: Config -> IO State
 initPool (Config connectInfo stripeCount connectionsPerStripe connectionTimout) =
     createPool (connect connectInfo) close stripeCount connectionTimout connectionsPerStripe
 
 
--- Helper Function For Database Migration
+-- |Helper Function For Database Migration
 runMigrationTransaction :: Connection -> IO (MigrationResult String)
 runMigrationTransaction conn = withTransaction conn $ runMigrations False conn commands
     where commands = [MigrationInitialization, MigrationDirectory "src/Adapter/PostgreSQL/Migrations"]
 
 
--- Perform Database Migration Inside A Transaction; Throw An Error If The Migration Cannot Be Completed.
+-- |Perform Database Migration Inside A Transaction; Throw An Error If The Migration Cannot Be Completed.
 migrate :: State -> IO ()
 migrate pool = withResource pool $ \conn -> do
     runMigrationTransaction conn >>= \case
@@ -159,7 +162,7 @@ migrate pool = withResource pool $ \conn -> do
         _ -> return ()
 
 
--- Helper Function Which Performs An Action That Requires A Database Connection.
+-- |Helper Function Which Performs An Action That Requires A Database Connection.
 withConn :: PG r m => (Connection -> IO a) -> m a
 withConn action = do
     pool <- asks getter
