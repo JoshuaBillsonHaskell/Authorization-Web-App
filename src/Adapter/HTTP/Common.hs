@@ -13,8 +13,6 @@ import qualified Data.Text.Encoding as TE
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Web.Cookie as Cookie
-import qualified Data.Aeson as Aeson
-import qualified Web.Forma as Forma
 import qualified Data.Text.Lazy as LT
 
 
@@ -49,15 +47,3 @@ getCurrentUserId = do
     getCookie "SessionID" >>= \case
         Nothing -> return Nothing
         Just sessionID -> lift . resolveSessionID . LT.toStrict $ sessionID
-
-
--- |A Wrapper Around getCurrentUserID Which Sets The Response To 401 In The Event That A User ID Cannot Be Found
-reqCurrentUserId :: (SessionRepo m, ScottyError e) => ActionT e m UserID
-reqCurrentUserId = do
-    getCurrentUserId >>= \case
-        Nothing -> do
-            status status401
-            json ("AuthRequired" :: LT.Text)
-            finish
-        Just userID ->
-            return userID

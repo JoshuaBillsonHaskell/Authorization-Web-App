@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 601b69807fa505245654c7857ae451ab48320b5db113f3083ff01f16f5ce6b60
+-- hash: 4ab89104f0635140a7504a29b5ec3380102f1d9c1d2735d403959fd7899f8303
 
 name:           ExampleWebApp
 version:        0.1.0.0
@@ -50,10 +50,13 @@ library
     , async
     , base >=4.7 && <5
     , blaze-builder
+    , blaze-html
     , bytestring
     , containers
     , cookie
     , data-has
+    , digestive-functors
+    , digestive-functors-blaze
     , forma
     , hedis >=0.10.0
     , http-types
@@ -71,6 +74,8 @@ library
     , time
     , wai
     , wai-extra
+    , wai-middleware-static
+    , warp
   default-language: Haskell2010
 
 executable ExampleWebApp-exe
@@ -88,10 +93,13 @@ executable ExampleWebApp-exe
     , async
     , base >=4.7 && <5
     , blaze-builder
+    , blaze-html
     , bytestring
     , containers
     , cookie
     , data-has
+    , digestive-functors
+    , digestive-functors-blaze
     , forma
     , hedis >=0.10.0
     , http-types
@@ -109,6 +117,8 @@ executable ExampleWebApp-exe
     , time
     , wai
     , wai-extra
+    , wai-middleware-static
+    , warp
   default-language: Haskell2010
 
 test-suite ExampleWebApp-test
@@ -127,10 +137,13 @@ test-suite ExampleWebApp-test
     , async
     , base >=4.7 && <5
     , blaze-builder
+    , blaze-html
     , bytestring
     , containers
     , cookie
     , data-has
+    , digestive-functors
+    , digestive-functors-blaze
     , forma
     , hedis >=0.10.0
     , http-types
@@ -148,4 +161,6 @@ test-suite ExampleWebApp-test
     , time
     , wai
     , wai-extra
+    , wai-middleware-static
+    , warp
   default-language: Haskell2010

@@ -5,7 +5,8 @@ import Domain.Auth
 import Adapter.HTTP.Common
 import Network.HTTP.Types.Status
 import Control.Monad.IO.Class
-import Adapter.HTTP.Validation
+import Adapter.HTTP.API.Validation
+import Adapter.HTTP.API.Common
 
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text as T

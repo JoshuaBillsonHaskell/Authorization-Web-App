@@ -1,10 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedLabels #-}
 
-module Adapter.HTTP.Validation ( parseAndValidateJSON
-                               , authForm
-                               , verifyEmailForm
-                               ) where
+module Adapter.HTTP.API.Validation where
 
 import Web.Scotty.Trans
 import Control.Monad.Except
@@ -13,7 +10,6 @@ import Domain.Auth
 import qualified Data.Aeson as Aeson
 import qualified Web.Forma as Forma
 import qualified Data.Text.Lazy as LT
-
 
 -- |Parse JSON From A Request Body And Return The Result Or Return A Status 400 Error If Parsing Fails
 parseAndValidateJSON :: (ScottyError e, MonadIO m, Show a, Show e) => Forma.FormParser names e m a -> ActionT e m a

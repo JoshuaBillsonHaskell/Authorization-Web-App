@@ -46,6 +46,11 @@ dependencies:
   - wai-extra
   - blaze-builder
   - forma
+  - blaze-html
+  - digestive-functors
+  - digestive-functors-blaze
+  - wai-middleware-static
+  - warp
 
 default-extensions:
   - OverloadedStrings
