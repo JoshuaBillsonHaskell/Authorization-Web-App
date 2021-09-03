@@ -49,6 +49,7 @@ dependencies:
   - blaze-html
   - digestive-functors
   - digestive-functors-blaze
+  - digestive-functors-scotty
   - wai-middleware-static
   - warp
 

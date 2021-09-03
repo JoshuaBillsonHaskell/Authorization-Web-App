@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4ab89104f0635140a7504a29b5ec3380102f1d9c1d2735d403959fd7899f8303
+-- hash: b6d410c035a77c8877178d1e17d1f323aaf718bd368f78bbbcf2806332d92797
 
 name:           ExampleWebApp
 version:        0.1.0.0
@@ -28,9 +28,14 @@ source-repository head
 library
   exposed-modules:
       Adapter.HTTP.API.Auth
+      Adapter.HTTP.API.Common
+      Adapter.HTTP.API.Main
+      Adapter.HTTP.API.Validation
       Adapter.HTTP.Common
       Adapter.HTTP.Main
-      Adapter.HTTP.Validation
+      Adapter.HTTP.Web.Auth
+      Adapter.HTTP.Web.Common
+      Adapter.HTTP.Web.Main
       Adapter.InMemory.Auth
       Adapter.PostgreSQL.Auth
       Adapter.RabbitMQ.Auth
@@ -57,6 +62,7 @@ library
     , data-has
     , digestive-functors
     , digestive-functors-blaze
+    , digestive-functors-scotty
     , forma
     , hedis >=0.10.0
     , http-types
@@ -100,6 +106,7 @@ executable ExampleWebApp-exe
     , data-has
     , digestive-functors
     , digestive-functors-blaze
+    , digestive-functors-scotty
     , forma
     , hedis >=0.10.0
     , http-types
@@ -144,6 +151,7 @@ test-suite ExampleWebApp-test
     , data-has
     , digestive-functors
     , digestive-functors-blaze
+    , digestive-functors-scotty
     , forma
     , hedis >=0.10.0
     , http-types

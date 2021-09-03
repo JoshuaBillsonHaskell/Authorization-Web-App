@@ -18,7 +18,7 @@ main port runner = do
     api <- API.main runner
     Warp.run port $ vhost [(pathBeginsWith "api", api)] web
 
-
+ 
 -- |Checks That A Path Begins With A Given String
 pathBeginsWith :: T.Text -> Wai.Request -> Bool
 pathBeginsWith path = (== Just path) . safeHead . Wai.pathInfo

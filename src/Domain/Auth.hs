@@ -31,7 +31,7 @@ module Domain.Auth (
                    , dummyPassword
                    , dummyAuth
                    ) where
-  
+
 import qualified Data.Text as Txt
 import Katip.Monadic
 import Katip.Core
